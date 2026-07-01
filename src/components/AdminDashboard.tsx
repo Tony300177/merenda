@@ -96,19 +96,6 @@ export const AdminDashboard: React.FC = () => {
     XLSX.writeFile(workbook, 'pesquisa_merenda.xlsx');
   };
 
-  const exportToCSV = () => {
-    const headers = ['Escola,Horário,Idade,Come Merenda,Gosta Merenda,Merenda Preferida,Sugestão,Data\n'];
-    const rows = filteredResponses.map(r =>
-      `${r.escola_nome},${r.horario === 'manha' ? 'Manhã' : 'Tarde'},${r.idade},${r.come_merenda},${r.gosta_merenda},"${r.merenda_preferida}","${r.sugestao_merenda}",${new Date(r.created_at).toLocaleString()}\n`
-    );
-    const blob = new Blob([headers + rows.join('')], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'pesquisa_merenda.csv';
-    a.click();
-  };
-
   const generatePDF = (type: 'geral' | 'escola') => {
     const doc = new jsPDF();
     const title = type === 'geral' ? 'Relatório Geral - Pesquisa de Merenda' : 'Relatório por Escola - Pesquisa de Merenda';
@@ -165,14 +152,6 @@ export const AdminDashboard: React.FC = () => {
     }
 
     doc.save(`relatorio_${type}.pdf`);
-  };
-
-  const handleExport = (format: string) => {
-    if (format === 'excel') {
-      exportToExcel();
-    } else if (format === 'csv') {
-      exportToCSV();
-    }
   };
 
   const ChartCard: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -296,14 +275,12 @@ export const AdminDashboard: React.FC = () => {
                   <option value="manha">Manhã</option>
                   <option value="tarde">Tarde</option>
                 </select>
-                <select
-                  onChange={e => handleExport(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-lg"
+                <button
+                  onClick={exportToExcel}
+                  className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
                 >
-                  <option value="">Exportar</option>
-                  <option value="excel">Excel (.xlsx)</option>
-                  <option value="csv">CSV</option>
-                </select>
+                  Exportar Excel
+                </button>
               </div>
             </div>
 
@@ -400,14 +377,12 @@ export const AdminDashboard: React.FC = () => {
                     onChange={e => setSearchTerm(e.target.value)}
                     className="px-4 py-2 border border-gray-300 rounded-lg w-64"
                   />
-                  <select
-                    onChange={e => handleExport(e.target.value)}
-                    className="px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                  <button
+                    onClick={exportToExcel}
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors text-sm"
                   >
-                    <option value="">Exportar</option>
-                    <option value="excel">Excel (.xlsx)</option>
-                    <option value="csv">CSV</option>
-                  </select>
+                    Exportar Excel
+                  </button>
                 </div>
               </div>
             </div>
@@ -468,7 +443,7 @@ export const AdminDashboard: React.FC = () => {
         {activeTab === 'relatorios' && (
           <div className="max-w-2xl mx-auto">
             <div className="bg-white rounded-xl p-6 shadow-sm mb-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Exportar Dados</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Relatório Geral</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={exportToExcel}
@@ -476,37 +451,15 @@ export const AdminDashboard: React.FC = () => {
                 >
                   <div className="text-3xl mb-2">📊</div>
                   <div className="font-semibold text-green-700">Excel (.xlsx)</div>
-                  <div className="text-sm text-gray-500">Exportar dados filtrados</div>
+                  <div className="text-sm text-gray-500">Exportar todos os registros</div>
                 </button>
-                <button
-                  onClick={exportToCSV}
-                  className="p-6 border-2 border-dashed border-blue-300 rounded-xl hover:bg-blue-50 transition-colors text-center"
-                >
-                  <div className="text-3xl mb-2">📄</div>
-                  <div className="font-semibold text-blue-700">CSV</div>
-                  <div className="text-sm text-gray-500">Exportar dados filtrados</div>
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-xl p-6 shadow-sm">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">Relatórios PDF</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <button
                   onClick={() => generatePDF('geral')}
                   className="p-6 border-2 border-dashed border-red-300 rounded-xl hover:bg-red-50 transition-colors text-center"
                 >
                   <div className="text-3xl mb-2">📄</div>
-                  <div className="font-semibold text-red-700">Relatório Geral</div>
-                  <div className="text-sm text-gray-500">Estatísticas completas</div>
-                </button>
-                <button
-                  onClick={() => generatePDF('escola')}
-                  className="p-6 border-2 border-dashed border-purple-300 rounded-xl hover:bg-purple-50 transition-colors text-center"
-                >
-                  <div className="text-3xl mb-2">📄</div>
-                  <div className="font-semibold text-purple-700">Relatório por Escola</div>
-                  <div className="text-sm text-gray-500">Dados agrupados por escola</div>
+                  <div className="font-semibold text-red-700">PDF</div>
+                  <div className="text-sm text-gray-500">Relatório completo em PDF</div>
                 </button>
               </div>
             </div>
