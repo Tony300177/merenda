@@ -9,6 +9,7 @@ interface SurveyContextType {
   stats: Stats;
   isLoading: boolean;
   error: string | null;
+  syncFromLocal: () => Promise<number>;
 }
 
 const SurveyContext = createContext<SurveyContextType | undefined>(undefined);
@@ -21,27 +22,14 @@ export const useSurvey = () => {
   return context;
 };
 
-const STORAGE_KEY = 'survey_responses';
-
 export const SurveyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [useLocal, setUseLocal] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      setResponses(JSON.parse(saved));
-    }
     loadResponses();
   }, []);
-
-  useEffect(() => {
-    if (useLocal) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(responses));
-    }
-  }, [responses, useLocal]);
 
   const loadResponses = async () => {
     setIsLoading(true);
@@ -53,54 +41,68 @@ export const SurveyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       .order('created_at', { ascending: false });
 
     if (error) {
-      console.error('Erro ao carregar respostas do Supabase:', error.message);
+      console.error('Erro ao carregar respostas:', error.message);
       setError(error.message);
-      setUseLocal(true);
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        setResponses(JSON.parse(saved));
-      }
     } else if (data) {
       setResponses(data as SurveyResponse[]);
-      setUseLocal(false);
     }
     setIsLoading(false);
   };
 
   const addResponse = async (response: Omit<SurveyResponse, 'id' | 'created_at' | 'escola_nome'>) => {
     const escola = schools.find(s => s.id === response.escola_id);
+    const { error } = await supabase
+      .from('survey_responses')
+      .insert({
+        escola_id: response.escola_id,
+        escola_nome: escola?.nome || '',
+        horario: response.horario,
+        idade: response.idade,
+        come_merenda: response.come_merenda,
+        gosta_merenda: response.gosta_merenda,
+        merenda_preferida: response.merenda_preferida,
+        sugestao_merenda: response.sugestao_merenda,
+      });
 
-    if (!useLocal) {
+    if (error) {
+      console.error('Erro ao salvar resposta:', error.message);
+      setError(error.message);
+      return;
+    }
+
+    await loadResponses();
+  };
+
+  const syncFromLocal = async (): Promise<number> => {
+    const saved = localStorage.getItem('survey_responses');
+    if (!saved) return 0;
+
+    const local: SurveyResponse[] = JSON.parse(saved);
+    let count = 0;
+
+    for (const item of local) {
       const { error } = await supabase
         .from('survey_responses')
         .insert({
-          escola_id: response.escola_id,
-          escola_nome: escola?.nome || '',
-          horario: response.horario,
-          idade: response.idade,
-          come_merenda: response.come_merenda,
-          gosta_merenda: response.gosta_merenda,
-          merenda_preferida: response.merenda_preferida,
-          sugestao_merenda: response.sugestao_merenda,
+          escola_id: item.escola_id,
+          escola_nome: item.escola_nome || '',
+          horario: item.horario,
+          idade: item.idade,
+          come_merenda: item.come_merenda,
+          gosta_merenda: item.gosta_merenda,
+          merenda_preferida: item.merenda_preferida,
+          sugestao_merenda: item.sugestao_merenda,
         });
 
-      if (error) {
-        console.error('Erro ao salvar no Supabase:', error.message);
-        setError(error.message);
-        setUseLocal(true);
-      } else {
-        await loadResponses();
-        return;
-      }
+      if (!error) count++;
     }
 
-    const newResponse: SurveyResponse = {
-      ...response,
-      id: Date.now(),
-      created_at: new Date().toISOString(),
-      escola_nome: escola?.nome || '',
-    };
-    setResponses(prev => [...prev, newResponse]);
+    if (count > 0) {
+      localStorage.removeItem('survey_responses');
+      await loadResponses();
+    }
+
+    return count;
   };
 
   const calculateStats = useCallback((): Stats => {
@@ -147,7 +149,7 @@ export const SurveyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const stats = calculateStats();
 
   return (
-    <SurveyContext.Provider value={{ responses, addResponse, stats, isLoading, error }}>
+    <SurveyContext.Provider value={{ responses, addResponse, stats, isLoading, error, syncFromLocal }}>
       {children}
     </SurveyContext.Provider>
   );

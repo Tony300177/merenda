@@ -14,7 +14,17 @@ declare module 'jspdf' {
 type Tab = 'dashboard' | 'registros' | 'relatorios';
 
 export const AdminDashboard: React.FC = () => {
-  const { responses, stats, isLoading, error } = useSurvey();
+  const { responses, stats, isLoading, error, syncFromLocal } = useSurvey();
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMsg('');
+    const count = await syncFromLocal();
+    setSyncMsg(`${count} registro(s) enviado(s) para o Supabase!`);
+    setSyncing(false);
+  };
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [filterSchool, setFilterSchool] = useState<number>(0);
@@ -196,6 +206,12 @@ export const AdminDashboard: React.FC = () => {
         </div>
       )}
 
+      {syncMsg && (
+        <div className="bg-green-50 border border-green-200 text-green-700 px-6 py-3 mx-6 mt-4 rounded-lg">
+          {syncMsg}
+        </div>
+      )}
+
       <div className="border-b bg-white">
         <div className="flex px-6">
           {tabs.map(tab => (
@@ -217,6 +233,17 @@ export const AdminDashboard: React.FC = () => {
       <div className="p-6">
         {activeTab === 'dashboard' && (
           <>
+            <div className="bg-white rounded-xl p-4 shadow-sm mb-6 flex items-center justify-between">
+              <span className="text-gray-600">Dados salvos no Supabase</span>
+              <button
+                onClick={handleSync}
+                disabled={syncing}
+                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors disabled:opacity-50 text-sm"
+              >
+                {syncing ? 'Sincronizando...' : 'Sincronizar dados locais'}
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-white rounded-xl p-4 shadow-sm">
                 <div className="text-3xl font-bold text-orange-500">{filteredStats.total}</div>
