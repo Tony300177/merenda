@@ -1,0 +1,21 @@
+export const schools = [
+  { id: 1, nome: "CEI LUIZ FELIPE" },
+  { id: 2, nome: "CEM SAO CRISTOVAO" },
+  { id: 3, nome: "CEI ARCO IRIS" },
+  { id: 4, nome: "CEI BRUNO LEONARDO" },
+  { id: 5, nome: "CEI DOM FRANCO" },
+  { id: 6, nome: "CEI MENINO JESUS" },
+  { id: 7, nome: "CEI NOSSO LAR" },
+  { id: 8, nome: "CEI VASCO PAPA" },
+  { id: 9, nome: "CEI CRIANCA FELIZ" },
+  { id: 10, nome: "CEM GUILHERME" },
+  { id: 11, nome: "CEM ORLANDO PEREIRA" },
+  { id: 12, nome: "EM MARIA HILDA" },
+  { id: 13, nome: "EM PAULO FREIRE" },
+  { id: 14, nome: "EM JOSE ANCHIETA" },
+  { id: 15, nome: "ERM ALVARES AZEVEDO" },
+  { id: 16, nome: "ERM CORA CORALINA" },
+  { id: 17, nome: "ERM EUCLIDES CUNHA" },
+  { id: 18, nome: "ERM OSVALDO CRUZ" },
+  { id: 19, nome: "ERM VINICIUS DE MORAIS" }
+];
