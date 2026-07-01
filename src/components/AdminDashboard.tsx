@@ -14,7 +14,7 @@ declare module 'jspdf' {
 type Tab = 'dashboard' | 'registros' | 'relatorios';
 
 export const AdminDashboard: React.FC = () => {
-  const { responses, stats, isLoading } = useSurvey();
+  const { responses, stats, isLoading, error } = useSurvey();
   const { logout } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [filterSchool, setFilterSchool] = useState<number>(0);
@@ -189,6 +189,12 @@ export const AdminDashboard: React.FC = () => {
           Sair
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-3 mx-6 mt-4 rounded-lg">
+          <strong>Erro ao carregar dados:</strong> {error}
+        </div>
+      )}
 
       <div className="border-b bg-white">
         <div className="flex px-6">

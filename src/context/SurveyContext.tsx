@@ -8,6 +8,7 @@ interface SurveyContextType {
   addResponse: (response: Omit<SurveyResponse, 'id' | 'created_at' | 'escola_nome'>) => Promise<void>;
   stats: Stats;
   isLoading: boolean;
+  error: string | null;
 }
 
 const SurveyContext = createContext<SurveyContextType | undefined>(undefined);
@@ -23,6 +24,7 @@ export const useSurvey = () => {
 export const SurveyProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [responses, setResponses] = useState<SurveyResponse[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     loadResponses();
@@ -37,8 +39,10 @@ export const SurveyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
     if (error) {
       console.error('Erro ao carregar respostas:', error.message);
+      setError(error.message);
     } else if (data) {
       setResponses(data as SurveyResponse[]);
+      setError(null);
     }
     setIsLoading(false);
   };
@@ -110,7 +114,7 @@ export const SurveyProvider: React.FC<{ children: ReactNode }> = ({ children }) 
   const stats = calculateStats();
 
   return (
-    <SurveyContext.Provider value={{ responses, addResponse, stats, isLoading }}>
+    <SurveyContext.Provider value={{ responses, addResponse, stats, isLoading, error }}>
       {children}
     </SurveyContext.Provider>
   );

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useSurvey } from '../context/SurveyContext';
 import { schools } from '../data/schools';
@@ -16,11 +16,31 @@ interface SurveyFormValues {
 export const SurveyForm: React.FC = () => {
   const { register, handleSubmit, reset, formState: { isSubmitting } } = useForm<SurveyFormValues>();
   const { addResponse } = useSurvey();
+  const [sent, setSent] = useState(false);
 
   const onSubmit = async (data: SurveyFormValues) => {
     await addResponse(data);
+    setSent(true);
     reset();
   };
+
+  if (sent) {
+    return (
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="bg-white rounded-2xl shadow-xl p-8 text-center">
+          <div className="text-6xl mb-4">🎉</div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Pesquisa enviada com sucesso!</h2>
+          <p className="text-gray-600 mb-6">Obrigado por participar! Sua opinião é muito importante.</p>
+          <button
+            onClick={() => setSent(false)}
+            className="px-6 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white font-semibold rounded-lg shadow-lg hover:from-orange-600 hover:to-red-600 transition-all duration-200"
+          >
+            Enviar outra resposta
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
